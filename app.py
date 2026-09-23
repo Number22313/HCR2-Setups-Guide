@@ -1,8 +1,9 @@
+"""Sqlalchemy tools"""
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.exceptions import HTTPException
 from sqlalchemy import func, or_
 from sqlalchemy.orm import aliased
-from werkzeug.exceptions import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
 app = Flask(__name__)
@@ -11,82 +12,24 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = 'temporary_secret_key'
 db = SQLAlchemy(app)
 
-tracks_list = ["Bottom Gear","No Skidding","Cuptown Relax","Landing Drive","Seesaw Road",
-                   "Big Air","Beyond Climberdome","Legendary Apex","Trial of Fall",
-                   "Trial of Courage","Trial of Balance","Forbidden Forest","Captain's Log",
-                   "The Pond","Racing Wild","The Fast Lions","Sunburnt","Tumbleweeds",
-                   "Road to Heck","Hills Ahead","Visions of Victory","Hollow Road",
-                   "Barn Ride","Base Jump","Silo Showdown","Let It Snow","Slippery Slope",
-                   "Crossroads","The Dunes","Beach Boys","Seaside","Showgrounds",
-                   "Four-Wheel Park","Circuit 9","House Party","Call of the Night",
-                   "Shape of Hills to Come","Factory Settings","Face Plant",
-                   "Flip a Switch","Plain As Day","World's Fastest Animal","Fare You Well",
-                   "Bridges And Stones","The Dip","Killing Floors","Shaft Redemption",
-                   "Tired Alligators","Hangout Cave","Docked_Out","Rubberist","Heat Club",
-                   "Whipclash","Fury Road","Yellow Snow","Sledhammer","Icicle Race",
-                   "Fingerwoods","The Quarry","Lost In Transmission","Flipway","Deeper End",
-                   "The Trench","Reef Grief","Canyon_Getaway","Racepalm","Jet Boost Holidays",
-                   "Falling Crates","Magnet Madness","Take_Off","Long Road Down",
-                   "Bill's Landing","Spartan Racing","Ballmer's Peak","Skid Happens",
-                   "No Step on Snek","Bat Country","Through The Mountains","Gentle Escalation",
-                   "Cool Descent","Topsy-Turvy","Roll With It","Switch It Up","Drive Through",
-                   "Danger_Zone","A Bridge Too Far","Cliffside Way","Tricky Drive",
-                   "Nose Miner","Happy Miner","A Flat Miner","Nature Calls","Chew and Run",
-                   "Nectar of the Climb","Sand in Swimsuit","Tunnel Dive","The Big Dunes",
-                   "Swamp Ride","Grill Bill","Happy Campers","Boarding","Carting","Overtakers",
-                   "Front Window","Belter Road","Metal Gear","Braking Bad","Hairpin",
-                   "Smooth Curves","Dusky Vale","Big Log Sprint","Twisted Trees","Snow Castle",
-                   "Tailwind Trail","Headwind Shortcut","Like a Hawk","Deepest End",
-                   "Rock and Roll","Wheeler","Deep End","Tunnel Vision","The Esses",
-                   "On the Rocks","Boiling Hollow","Bone Gorge","Forgotten Highway",
-                   "Frostfire Caverns","Rust Valley","Cactus Hill","Dust Valley","The Ruins",
-                   "Tumbling Down","Down the Tube","Muddy Road","Cottage Road","Lonely Camper",
-                   "Parking Trailers","Snappy Swamps","Bumps in the Water","Dirt Road",
-                   "Danger Ahead","Highs and Lows","Get Soaked","Watery Tunnel","Don't Dive",
-                   "Living on the Edge","Over the Cliff","Steep Downhill Cliff","Nowhere Road",
-                   "Coconut Cove","Downtown Madness","Bumpy Ride","Rough Road",
-                   "Under the Cliff","Base Camp","Crazy Climb","Top of the World",
-                   "Logs and Rocks","Rock Pit","Flying Log","Tide Waves","Kid's Pool",
-                   "Sandbox","Far Far Away","Hot Tarmac","The Carousel","Fast_Lane",
-                   "Paradise Bay","Backwash Dash","Coral Quarrel","Thalassophobia",
-                   "Access to Enjoyment","Liability Free Run","Generate Delight",
-                   "Approaching Dread","Commence Fright","Spook On,Spook Off",
-                   "You shall not jump","The Princess Drive","Puddle Bender","A Storm of Stumps",
-                   "Special Stage One","Special Stage Two","Special Stage Three","Nightlife",
-                   "Neighbourbonnet","Boost Boulevard","Jumpin' Jack Crash","Breakneck Blitz",
-                   "Carppuccino","Smooth Blend","Bean 2 Tank","Dire Drive",
-                   "One Does Not Simply","Ice Era","Logging In","Stumped","The Root Cause",
-                   "Natural Sprinters","Let's Hunt Some Torque","Mud's Back on the Menu",
-                   ]
-vehicles_list = ["Hill Climber","Scooter","Bus","Hill Climber Mk2","Tractor","Motocross",
-                     "Dune Buggy","Sports Car","Monster Truck","Rotator","Super Diesel",
-                     "Chopper","Tank","Lowrider","Snowmobile","Monowheel","Beast",
-                     "Rally Car","Formula","Muscle Car","Racing Truck","Hot Rod","CC-EV",
-                     "Superbike","Supercar","Moonlander","Rock Bouncer","Hoverbike","Raider",
-                     "Glider","Bolt","ATV","Offroader","Stocker"
-                     ]
-parts_list = ["Magnet","Heavyweight","Wings","Rollcage","Air Control","Winter Tires",
-                  "Start Boost","Wheelie Boost","Fume Boost","Flip Boost","Jump Shocks",
-                  "Landing Boost","Overcharged Turbo","Afterburner","Spoiler","Thrusters",
-                  "Fuel Boost","Coin Boost","Nitro"
-                  ]
-
 
 class Setups(db.Model):
+    """Main junction table, different combinations"""
     __tablename__ = "Setups"
     setup_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     time_id = db.Column(db.Integer, db.ForeignKey("WR_Times.time_id"), nullable=False)
     track_id = db.Column(db.Integer, db.ForeignKey("Tracks.track_id"), nullable=False)
     tune_id = db.Column(db.Integer, db.ForeignKey("Tunes.tune_id"), nullable=False)
     vehicle_id = db.Column(db.Integer, db.ForeignKey("Vehicles.vehicle_id"), nullable=False)
-    part_id = db.Column(db.Integer, db.ForeignKey("Part Combinations.part_id"), nullable=False)
+    part_id = db.Column(db.Integer, db.ForeignKey("Part_Combinations.part_id"), nullable=False)
     wr_time = db.relationship("WR_Times", back_populates="setups")
     track = db.relationship("Tracks", back_populates="setups")
     tune = db.relationship("Tunes", back_populates="setups")
     vehicle = db.relationship("Vehicles", back_populates="setups")
     parts_combinations = db.relationship("Parts", back_populates="setups")
 
-class WR_Times(db.Model):
+class WRTimes(db.Model):
+    """All the player and time combinations"""
     __tablename__ = "WR_Times"
     time_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     time = db.Column(db.REAL, nullable=False)
@@ -95,13 +38,21 @@ class WR_Times(db.Model):
 
 class Tracks(db.Model):
     __tablename__ = "Tracks"
-    track_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True)
+    track_id = db.Column(db.Integer,
+                         primary_key=True,
+                         autoincrement=True,
+                         nullable=False,
+                         unique=True)
     track_name = db.Column(db.Text, nullable=False)
     setups = db.relationship("Setups", back_populates="track")
 
 class Tunes(db.Model):
     __tablename__ = "Tunes"
-    tune_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True)
+    tune_id = db.Column(db.Integer,
+                        primary_key=True,
+                        autoincrement=True,
+                        nullable=False,
+                        unique=True)
     tune1 = db.Column(db.Integer, nullable=False)
     tune2 = db.Column(db.Integer, nullable=False)
     tune3 = db.Column(db.Integer, nullable=False)
@@ -110,13 +61,21 @@ class Tunes(db.Model):
 
 class Vehicles(db.Model):
     __tablename__ = "Vehicles"
-    vehicle_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True)
+    vehicle_id = db.Column(db.Integer,
+                           primary_key=True,
+                           autoincrement=True,
+                           nullable=False,
+                           unique=True)
     vehicle_name = db.Column(db.Text, unique=True)
     setups = db.relationship("Setups", back_populates="vehicle")
 
 class Parts(db.Model):
-    __tablename__ = "Part Combinations"
-    part_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True)
+    __tablename__ = "Part_Combinations"
+    part_id = db.Column(db.Integer,
+                        primary_key=True,
+                        autoincrement=True,
+                        nullable=False,
+                        unique=True)
     slot1 = db.Column(db.Text, nullable=False)
     slot2 = db.Column(db.Text, nullable=False)
     slot3 = db.Column(db.Text, nullable=False)
@@ -130,12 +89,13 @@ def error_handler(a):
 
 def wr_subquery():
     #World Record setups
-    Setup_subquery = aliased(Setups)
-    return Setups.query.join(WR_Times).filter(WR_Times.time == (db.session.query(func.min(WR_Times.time))
-                                                                .join(Setup_subquery, WR_Times.time_id == Setup_subquery.time_id)
-                                                                .filter(Setup_subquery.track_id == Setups.track_id,
-                                                                        Setup_subquery.vehicle_id == Setups.vehicle_id)
-                                                                .scalar_subquery()))
+    setup_subquery = aliased(Setups)
+    subquery = (db.session.query(func.min(WRTimes.time))
+                    .join(setup_subquery, WRTimes.time_id == setup_subquery.time_id)
+                    .filter(setup_subquery.track_id == Setups.track_id,
+                            setup_subquery.vehicle_id == Setups.vehicle_id)
+                    .scalar_subquery())
+    return Setups.query.join(WRTimes).filter(WRTimes.time == subquery)
 
 
 @app.before_request
@@ -144,10 +104,10 @@ def settings_menu():
     rpp = request.form.get('rows_per_page', "")
     theme = request.form.get('theme', "")
     if 'theme' not in session:
-            session['theme'] = 'dark'
+        session['theme'] = 'dark'
     if 'rows_per_page' not in session:
         session['rows_per_page'] = 50
-    
+
     if request.method == 'POST' and 'Save' in request.form:
         #validation
         if theme and theme == 'dark':
@@ -161,8 +121,8 @@ def settings_menu():
                 session['rows_per_page'] = rpp
             else:
                 session['rows_per_page'] = 50
-                error.append(f"Rows per page must be between 1 and 100")
-                
+                error.append("Rows per page must be between 1 and 100")
+
         except (ValueError,TypeError):
             session['rows_per_page'] = 50
             if rpp != "":
@@ -174,13 +134,13 @@ def settings_menu():
 
 
 @app.route('/', methods=['GET', 'POST'])
-def Home():
+def home():
     setups_count = Setups.query.count()
     total_parts = Parts.query.count()
 
-    total_players = len({i.player for i in WR_Times.query.all()})
+    total_players = len({i.player for i in WRTimes.query.all()})
 
-    fastest_times = Setups.query.join(WR_Times).order_by(WR_Times.time.asc()).all()
+    fastest_times = Setups.query.join(WRTimes).order_by(WRTimes.time.asc()).all()
     return render_template('home.html',
                            active_page='Home',
                            setups_count=setups_count,
@@ -192,6 +152,11 @@ def Home():
 @app.route('/Setups', methods=['GET', 'POST'])
 def setups():
     insert_errors = []
+    global_tracks_list=[t.track_name for t in Tracks.query.all()]
+    global_vehicles_list=[v.vehicle_name for v in Vehicles.query.all()]
+    global_parts_list=({p.slot1 for p in Parts.query.all()}|
+                       {p.slot2 for p in Parts.query.all()}|
+                       {p.slot3 for p in Parts.query.all()})
     if request.method == 'POST':
         #Delete block
         if 'setup_delete' in request.form:
@@ -202,7 +167,7 @@ def setups():
                 db.session.commit()
             except SQLAlchemyError:
                 db.session.rollback()
-                insert_errors.append(f"Database error, insert rolled back")
+                insert_errors.append("Database error, insert rolled back")
             except ValueError:
                 insert_errors.append(f"{setup_delete} is not a valid id")
 
@@ -237,21 +202,20 @@ def setups():
                                     ])
                 slot1,slot2,slot3 = slot_list
                 print(f"{slot_list}")
-                
+
                 #Back end validation
 
-
-                #Empty fields check
-                if (not time or not player or not track_name or not vehicle_name 
+                #Empty fields and validation check
+                if (not time or not player or not track_name or not vehicle_name
                     or not slot1 or not slot2 or not slot3):
                     insert_errors.append("Not all fields are filled")
                     not_valid = True
 
 
-                if track_name and track_name not in tracks_list:
+                if track_name and not Tracks.query.filter_by(track_name=track_name).first():
                     insert_errors.append(f"{track_name} is not a valid track")
                     not_valid = True
-                
+
                 if time:
                     try:
                         time = float(time)
@@ -265,7 +229,7 @@ def setups():
 
 
                 if any(not o for o in tunes_list):
-                    insert_errors.append(f"Not all tunes fields are full")
+                    insert_errors.append("Not all tunes fields are full")
                     not_valid=True
                 else:
                     for o in tunes_list:
@@ -278,29 +242,36 @@ def setups():
                             insert_errors.append(f"{o} is not a number")
                             not_valid = True
 
-                if vehicle_name and vehicle_name not in vehicles_list:
+                if vehicle_name and not Vehicles.query.filter_by(
+                    vehicle_name=vehicle_name).first():
                     insert_errors.append(f"{vehicle_name} is not a valid vehicle")
                     not_valid = True
 
-                for i in slot_list:
-                    if i and i not in parts_list:
-                        insert_errors.append(f"{i} is not a valid part")
-                        not_valid = True
+
+                if slot_list:
+                    for i in slot_list:
+                        if i and not Parts.query.filter(
+                            (Parts.slot1==i)|
+                            (Parts.slot2==i)|
+                            (Parts.slot3==i)).first():
+                            insert_errors.append(f"{i} is not a valid part")
+                            not_valid = True
 
                 if slot1 and slot2 and slot3:
                     if len({slot1,slot2,slot3}) < 3:
                         insert_errors.append("Duplicate parts")
                         not_valid = True
-                
+
                 if player and (len(player) > 16 or len(player) < 3):
                     insert_errors.append(f"{player} is not a real player")
                     not_valid = True
-                
-                if not_valid and "Not all fields are filled" not in insert_errors:
+
+
+                if not_valid:
                     insert_errors.append("Invalid Fields")
                 else:
                     try:
-                        #Search the db for matching fields
+                        #DB search for existing setups
                         vehicle_query = Vehicles.query.filter_by(vehicle_name=vehicle_name).first()
                         if not vehicle_query:
                             vehicle_query = Vehicles(vehicle_name=vehicle_name)
@@ -310,33 +281,41 @@ def setups():
                         if not track_query:
                             track_query = Tracks(track_name=track_name)
                             db.session.add(track_query)
-                        
-                        tune_query = Tunes.query.filter_by(tune1=tune1,tune2=tune2,tune3=tune3,tune4=tune4).first()
+
+                        tune_query = Tunes.query.filter_by(tune1=tune1,
+                                                           tune2=tune2,
+                                                           tune3=tune3,
+                                                           tune4=tune4).first()
                         if not tune_query:
-                            tune_query = Tunes(tune1=tune1,tune2=tune2,tune3=tune3,tune4=tune4)
+                            tune_query = Tunes(tune1=tune1,
+                                               tune2=tune2,
+                                               tune3=tune3,
+                                               tune4=tune4)
                             db.session.add(tune_query)
-                        
-                        parts_query = Parts.query.filter_by(slot1=slot1, slot2=slot2, slot3=slot3).first()
+
+                        parts_query = Parts.query.filter_by(slot1=slot1,
+                                                            slot2=slot2,
+                                                            slot3=slot3).first()
                         if not parts_query:
                             parts_query = Parts(slot1=slot1, slot2=slot2, slot3=slot3)
                             db.session.add(parts_query)
 
-                        player_query = WR_Times.query.filter(WR_Times.player.ilike(player)).first()
+                        player_query = WRTimes.query.filter(WRTimes.player.ilike(player)).first()
                         if player_query:
                             player = player_query.player
-                        
+
                         db.session.flush()
-                        
-                        #Check if they match
-                        setup_query = Setups.query.join(WR_Times).filter(
+
+                        #Checking if they match an existing setup
+                        setup_query = Setups.query.join(WRTimes).filter(
                             Setups.vehicle == vehicle_query,
                             Setups.track == track_query,
                             Setups.tune == tune_query,
                             Setups.parts_combinations == parts_query,
-                            WR_Times.player == player
+                            WRTimes.player == player
                         ).first()
-                        
-                        #Update time if duplicate is found
+
+                        #Updating the time of the existing seutp
                         if setup_query:
                             print("Already a setup")
                             if time < setup_query.wr_time.time:
@@ -347,9 +326,9 @@ def setups():
                         #No duplicate
                         elif not setup_query:
                             print("Doesnt exist yet")
-                            time_query = WR_Times(time=time,player=player)
+                            time_query = WRTimes(time=time,player=player)
                             db.session.add(time_query)
-                            
+
                             db.session.flush()
 
                             setup = Setups(
@@ -359,7 +338,7 @@ def setups():
                                 tune_id = tune_query.tune_id,
                                 part_id = parts_query.part_id
                             )
-                            
+
                             db.session.add(setup)
                             if not insert_errors:
                                 insert_errors.append("Inserted")
@@ -367,15 +346,15 @@ def setups():
                         db.session.commit()
                     except SQLAlchemyError:
                         db.session.rollback()
-                        insert_errors.append(f"Database error, insert rolled back")
+                        insert_errors.append("Database error, insert rolled back")
 
     all_setups = reversed(Setups.query.all())
     return render_template('Setups.html',
                            active_page='setups',
                            setups=all_setups,
-                           tracks_list=tracks_list,
-                           vehicles_list=vehicles_list,
-                           parts_list=parts_list,
+                           tracks_list=global_tracks_list,
+                           vehicles_list=global_vehicles_list,
+                           parts_list=global_parts_list,
                            insert_errors=insert_errors)
 
 
@@ -403,39 +382,53 @@ def search():
     slot2 = request.args.getlist("slot2")
     slot3 = request.args.getlist("slot3")
 
+    global_tracks_list=[t.track_name for t in Tracks.query.all()]
+    global_vehicles_list=[v.vehicle_name for v in Vehicles.query.all()]
+    global_parts_list=({p.slot1 for p in Parts.query.all()}|
+                    {p.slot2 for p in Parts.query.all()}|
+                    {p.slot3 for p in Parts.query.all()})
+
     #Seperate variables to keep filters when reloading page
-    filters = [time,tune1,tune2,tune3,tune4,slot1,slot2,slot3,wr_checked,player_filter,track_filter,vehicle_filter]
-    print(f"{filters}")
+    filters = [time,tune1,tune2,tune3,tune4,
+               slot1,slot2,slot3,wr_checked,
+               player_filter,track_filter,vehicle_filter]
 
     #Only players with active records (no orphans)
-    players_options = sorted({c.wr_time.player for c in Setups.query.all() if c.wr_time and c.wr_time.player})
+    players_options = sorted(
+        {c.wr_time.player for c in Setups.query.all() 
+         if c.wr_time and c.wr_time.player})
 
     search_bar = request.args.get("search_bar") or None
-    
-    setup = Setups.query.join(WR_Times).join(Vehicles).join(Tracks).join(Tunes).join(Parts).order_by(WR_Times.time.asc())
+
+    setup = (Setups.query.join(WRTimes)
+             .join(Vehicles)
+             .join(Tracks)
+             .join(Tunes)
+             .join(Parts)
+             .order_by(WRTimes.time.asc()))
 
     #Filter setups with actual inputs
     if vehicle_filter:
-        vehicle = [v for v in vehicle_filter if v in vehicles_list]
+        vehicle = [v for v in vehicle_filter if v in global_vehicles_list]
         setup = setup.filter(Vehicles.vehicle_name.in_(vehicle))
 
-        vehicle_invalid = [v for v in vehicle_filter if v not in vehicles_list]
+        vehicle_invalid = [v for v in vehicle_filter if v not in global_vehicles_list]
         for v in vehicle_invalid:
             result_errors.append(f"{v} is not a valid vehicle")
-    
+
     if time:
         try:
             time = float(time)
             if time > 0:
-                setup = setup.filter(WR_Times.time == time)
+                setup = setup.filter(WRTimes.time == time)
             else:
-                result_errors.append(f"time must be greater than 0")
+                result_errors.append("time must be greater than 0")
         except ValueError:
             result_errors.append(f"{time} is not a number")
-    
+
     if player_filter:
         player = [p for p in player_filter if p in players_options]
-        setup = setup.filter(WR_Times.player.in_(player))
+        setup = setup.filter(WRTimes.player.in_(player))
 
         player_invalid = [p for p in player_filter if p not in players_options]
         for p in player_invalid:
@@ -443,13 +436,13 @@ def search():
 
     if track_filter:
 
-        track = [t for t in track_filter if t in tracks_list]
+        track = [t for t in track_filter if t in global_tracks_list]
         setup = setup.filter(Tracks.track_name.in_(track))
 
-        track_invalid = [t for t in track_filter if t not in tracks_list]
+        track_invalid = [t for t in track_filter if t not in global_tracks_list]
         for t in track_invalid:
             result_errors.append(f"{t} is not a valid track")
-    
+
     for value,column in tunes:
         if value:
             try:
@@ -460,25 +453,25 @@ def search():
                     result_errors.append(f"{value} is not between 1 and 20")
             except ValueError:
                 result_errors.append(f"{value} is not an integer")
-            
+
     for slot1_ in slot1:
-        if slot1_ in parts_list:
+        if slot1_ in global_parts_list:
             setup = setup.filter((Parts.slot1 == slot1_)|
                                 (Parts.slot2 == slot1_)|
                                 (Parts.slot3 == slot1_))
         else:
             result_errors.append(f"{slot1_} is not a valid part")
-    
+
     for slot2_ in slot2:
-        if slot2_ in parts_list:
+        if slot2_ in global_parts_list:
             setup = setup.filter((Parts.slot1 == slot2_)|
                                 (Parts.slot2 == slot2_)|
                                 (Parts.slot3 == slot2_))
         else:
             result_errors.append(f"{slot2_} is not a valid part")
-        
+
     for slot3_ in slot3:
-        if slot3_ in parts_list:
+        if slot3_ in global_parts_list:
             setup = setup.filter((Parts.slot1 == slot3_)|
                                 (Parts.slot2 == slot3_)|
                                 (Parts.slot3 == slot3_))
@@ -486,7 +479,7 @@ def search():
             result_errors.append(f"{slot3_} is not a valid part")
 
     master_list_lower = {}
-    for z in (tracks_list+vehicles_list+parts_list+players_options):
+    for z in (global_tracks_list+global_vehicles_list+global_parts_list+players_options):
         master_list_lower[z.lower()] = z
 
     if search_bar:
@@ -518,7 +511,7 @@ def search():
         for c in filter_match:
             search_filter = [Tracks.track_name.ilike(c),
                       Vehicles.vehicle_name.ilike(c),
-                      WR_Times.player.ilike(c),
+                      WRTimes.player.ilike(c),
                       Parts.slot1.ilike(c),
                       Parts.slot2.ilike(c),
                       Parts.slot3.ilike(c)]
@@ -526,7 +519,7 @@ def search():
             try:
                 search_time = float(c)
                 if search_time > 0:
-                    search_filter.append(WR_Times.time == search_time)
+                    search_filter.append(WRTimes.time == search_time)
                 else:
                     result_errors.append(f"(search) {search_time} cannot be negative")
             except ValueError:
@@ -550,7 +543,7 @@ def search():
     if wr_checked:
         wrs = wr_subquery().subquery()
         setup = setup.filter(Setups.setup_id.in_(db.session.query(wrs.c.setup_id)))
-    
+
     #All or nothing
     if result_errors:
         result = []
@@ -561,12 +554,12 @@ def search():
             for i in result:
                 wr_setups.append(int(i.setup_id))
             print(f"{wr_setups}")
-    
+
     return render_template('Search.html',
                            active_page='search',
-                           tracks_list=tracks_list,
-                           vehicles_list=vehicles_list,
-                           parts_list=parts_list,
+                           tracks_list=global_tracks_list,
+                           vehicles_list=global_vehicles_list,
+                           parts_list=global_parts_list,
                            search_bar=search_bar or "",
                            result=result,
                            players=players_options,

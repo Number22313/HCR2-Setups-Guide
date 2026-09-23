@@ -7,11 +7,11 @@
 
             <div class="links_and_settings">
                 <div class="links">
-                    <a href="{{ url_for('Home') }}" class="{{ 'active_page' if active_page == 'Home'}}">Home</a>
+                    <a href="{{ url_for('home') }}" class="{{ 'active_page' if active_page == 'Home'}}">Home</a>
                     <a href="{{ url_for('setups') }}" class="{{ 'active_page' if active_page == 'setups'}}">Setups</a>
                     <a href="{{ url_for('leaderboards') }}" class="{{ 'active_page' if active_page == 'leaderboards'}}">Leaderboards</a>
                     <a href="{{ url_for('search') }}" class="{{ 'active_page' if active_page == 'search'}}">Search</a>
-                    <a href="{{ url_for('Home', _anchor='information') }}">Information</a>
+                    <a href="{{ url_for('home', _anchor='information') }}">Information</a>
                 </div>
                 <details class="settings">
                     <summary>Settings</summary>
