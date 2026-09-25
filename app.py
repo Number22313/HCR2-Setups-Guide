@@ -22,7 +22,7 @@ class Setups(db.Model):
     tune_id = db.Column(db.Integer, db.ForeignKey("Tunes.tune_id"), nullable=False)
     vehicle_id = db.Column(db.Integer, db.ForeignKey("Vehicles.vehicle_id"), nullable=False)
     part_id = db.Column(db.Integer, db.ForeignKey("Part_Combinations.part_id"), nullable=False)
-    wr_time = db.relationship("WR_Times", back_populates="setups")
+    wr_time = db.relationship("WRTimes", back_populates="setups")
     track = db.relationship("Tracks", back_populates="setups")
     tune = db.relationship("Tunes", back_populates="setups")
     vehicle = db.relationship("Vehicles", back_populates="setups")
@@ -83,6 +83,7 @@ class Parts(db.Model):
     slot1 = db.Column(db.Text, nullable=False)
     slot2 = db.Column(db.Text, nullable=False)
     slot3 = db.Column(db.Text, nullable=False)
+    slot4 = db.Column(db.Text, nullable=False)
     setups = db.relationship("Setups", back_populates="parts_combinations")
 
 
@@ -178,7 +179,9 @@ def setups():
     global_vehicles_list=[v.vehicle_name for v in Vehicles.query.all()]
     global_parts_list=({p.slot1 for p in Parts.query.all()}|
                        {p.slot2 for p in Parts.query.all()}|
-                       {p.slot3 for p in Parts.query.all()})
+                       {p.slot3 for p in Parts.query.all()}|
+                       {p.slot4 for p in Parts.query.all()})
+
     if request.method == 'POST':
         #checks if the setup is being deleted or inserted
         if 'setup_delete' in request.form:
@@ -225,9 +228,10 @@ def setups():
                 vehicle_name=request.form.get("vehicle_name","")
                 slot_list = sorted([request.form.get("slot1",""),
                                     request.form.get("slot2",""),
-                                    request.form.get("slot3","")
+                                    request.form.get("slot3",""),
+                                    request.form.get("slot4","")
                                     ])
-                slot1,slot2,slot3 = slot_list
+                slot1,slot2,slot3,slot4 = slot_list
                 print(f"{slot_list}")
 
                 #back end validation
@@ -235,7 +239,7 @@ def setups():
                 #tries to validate all of the input fields and catches empty ones,
                 #checks every part,track, and vehicle being inserted to see if it exists in the DB
                 if (not time or not player or not track_name or not vehicle_name
-                    or not slot1 or not slot2 or not slot3):
+                    or not slot1 or not slot2 or not slot3 or not slot4):
                     insert_errors.append("Not all fields are filled")
                     not_valid = True
 
@@ -284,13 +288,14 @@ def setups():
                         if i and not Parts.query.filter(
                             (Parts.slot1==i)|
                             (Parts.slot2==i)|
-                            (Parts.slot3==i)).first():
+                            (Parts.slot3==i)|
+                            (Parts.slot4==i)).first():
                             insert_errors.append(f"{i} is not a valid part")
                             not_valid = True
 
                 #in game you cannot have the same part in more than one slot
-                if slot1 and slot2 and slot3:
-                    if len({slot1,slot2,slot3}) < 3:
+                if slot1 and slot2 and slot3 and slot4:
+                    if len({slot1,slot2,slot3,slot4}) < 4:
                         insert_errors.append("Duplicate parts")
                         not_valid = True
 
@@ -329,9 +334,14 @@ def setups():
 
                         parts_query = Parts.query.filter_by(slot1=slot1,
                                                             slot2=slot2,
-                                                            slot3=slot3).first()
+                                                            slot3=slot3,
+                                                            slot4=slot4).first()
                         if not parts_query:
-                            parts_query = Parts(slot1=slot1, slot2=slot2, slot3=slot3)
+                            parts_query = Parts(
+                                slot1=slot1,
+                                slot2=slot2,
+                                slot3=slot3,
+                                slot4=slot4)
                             db.session.add(parts_query)
 
                         player_query = WRTimes.query.filter(WRTimes.player.ilike(player)).first()
@@ -425,6 +435,7 @@ def search():
     slot1 = request.args.getlist("slot1")
     slot2 = request.args.getlist("slot2")
     slot3 = request.args.getlist("slot3")
+    slot4 = request.args.getlist("slot4")
 
     #lists for all tracks, vehicles, and parts so
     # there is less repetetive code in the validation
@@ -432,11 +443,12 @@ def search():
     global_vehicles_list=[v.vehicle_name for v in Vehicles.query.all()]
     global_parts_list=({p.slot1 for p in Parts.query.all()}|
                     {p.slot2 for p in Parts.query.all()}|
-                    {p.slot3 for p in Parts.query.all()})
+                    {p.slot3 for p in Parts.query.all()}|
+                    {p.slot4 for p in Parts.query.all()})
 
     #Seperate variables to keep filters when reloading page
     filters = [time,tune1,tune2,tune3,tune4,
-               slot1,slot2,slot3,wr_checked,
+               slot1,slot2,slot3,slot4,wr_checked,
                player_filter,track_filter,vehicle_filter]
 
     #set that only has players with active times in setups
@@ -508,7 +520,8 @@ def search():
         if slot1_ in global_parts_list:
             setup = setup.filter((Parts.slot1 == slot1_)|
                                 (Parts.slot2 == slot1_)|
-                                (Parts.slot3 == slot1_))
+                                (Parts.slot3 == slot1_)|
+                                (Parts.slot4 == slot1_))
         else:
             result_errors.append(f"{slot1_} is not a valid part")
 
@@ -516,7 +529,8 @@ def search():
         if slot2_ in global_parts_list:
             setup = setup.filter((Parts.slot1 == slot2_)|
                                 (Parts.slot2 == slot2_)|
-                                (Parts.slot3 == slot2_))
+                                (Parts.slot3 == slot2_)|
+                                (Parts.slot4 == slot2_))
         else:
             result_errors.append(f"{slot2_} is not a valid part")
 
@@ -524,12 +538,23 @@ def search():
         if slot3_ in global_parts_list:
             setup = setup.filter((Parts.slot1 == slot3_)|
                                 (Parts.slot2 == slot3_)|
-                                (Parts.slot3 == slot3_))
+                                (Parts.slot3 == slot3_)|
+                                (Parts.slot4 == slot3_))
         else:
             result_errors.append(f"{slot3_} is not a valid part")
 
+    for slot4_ in slot4:
+        if slot4_ in global_parts_list:
+            setup = setup.filter((Parts.slot1 == slot4_)|
+                                (Parts.slot2 == slot4_)|
+                                (Parts.slot3 == slot4_)|
+                                (Parts.slot4 == slot4_))
+        else:
+            result_errors.append(f"{slot4_} is not a valid part")
+
     master_list_lower = {}
-    for z in (global_tracks_list+global_vehicles_list+global_parts_list+players_options):
+    for z in (global_tracks_list+global_vehicles_list
+              +list(global_parts_list)+players_options):
         master_list_lower[z.lower()] = z
 
     #again only filtering if the search bar is being used
@@ -563,7 +588,8 @@ def search():
                       WRTimes.player.ilike(c),
                       Parts.slot1.ilike(c),
                       Parts.slot2.ilike(c),
-                      Parts.slot3.ilike(c)]
+                      Parts.slot3.ilike(c),
+                      Parts.slot4.ilike(c)]
 
             #integer filters can only be checked for being negative or not
             try:

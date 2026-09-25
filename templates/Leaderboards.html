@@ -49,6 +49,7 @@
                     <td>Slot1</td>
                     <td>Slot2</td>
                     <td>Slot3</td>
+                    <td>Slot4</td>
                     <td>Times Used</td>
                 </tr>
             </thead>
@@ -66,6 +67,9 @@
                             </td>
                             <td>
                                 <img src="{{ url_for('static', filename=i.slot3+'.webp') }}" alt="{{i.slot3}}" title="{{i.slot3}}">
+                            </td>
+                            <td>
+                                <img src="{{ url_for('static', filename=i.slot4+'.webp') }}" alt="{{i.slot4}}" title="{{i.slot4}}">
                             </td>
                             <td>{{count}}</td>
                         </tr>

@@ -75,7 +75,7 @@
             <div class="search-box">
                 <label>Parts</label>
                 <div class="multi-select">
-                    {% for i in range(3) %}
+                    {% for i in range(4) %}
                     <details class="expand" name="expand">
                         <summary>Slot {{i+1}}</summary>
                         <div class="expand_details">
@@ -129,7 +129,7 @@
                     <td>Track</td>
                     <td>Tunes</td>
                     <td>Vehicle</td>
-                    <td>Parts</td>
+                    <td colspan="4">Parts</td>
                 </tr>
             </thead>
             <tbody>
@@ -149,6 +149,9 @@
                         </td>
                         <td>
                             <img src="{{ url_for('static', filename=i.parts_combinations.slot3+'.webp') }}" alt="{{i.parts_combinations.slot3}}" title="{{i.parts_combinations.slot3}}">
+                        </td>
+                        <td>
+                            <img src="{{ url_for('static', filename=i.parts_combinations.slot4+'.webp') }}" alt="{{i.parts_combinations.slot4}}" title="{{i.parts_combinations.slot4}}">
                         </td>
                     </tr>
                 {% endfor %}

@@ -75,6 +75,13 @@
                                 <option value="{{i}}">{{i}}</option>
                             {% endfor %}
                         </select>
+
+                        <select name="slot4">
+                            <option value="" selected disabled hidden></option>
+                            {% for i in parts_list %}
+                                <option value="{{i}}">{{i}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
             </div>
@@ -109,7 +116,7 @@
                 <td>Track</td>
                 <td>Tunes</td>
                 <td>Vehicle</td>
-                <td>Parts</td>
+                <td colspan="4">Parts</td>
                 <td>Delete</td>
             </tr>
         </thead>
@@ -132,6 +139,9 @@
                         </td>
                         <td>
                             <img src="{{ url_for('static', filename=s.parts_combinations.slot3+'.webp') }}" alt="{{s.parts_combinations.slot3}}" title="{{s.parts_combinations.slot3}}">
+                        </td>
+                        <td>
+                            <img src="{{ url_for('static', filename=s.parts_combinations.slot4+'.webp') }}" alt="{{s.parts_combinations.slot4}}" title="{{s.parts_combinations.slot4}}">
                         </td>
                         <td>
                             <form action="{{ url_for('setups') }}" method="POST" class="delete_submit">
